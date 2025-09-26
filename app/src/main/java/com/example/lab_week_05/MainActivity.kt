@@ -12,6 +12,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import com.example.lab_week_05.api.CatApiService
+import com.example.lab_week_05.model.CatBreedData
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MainActivity : AppCompatActivity() {
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getCatImageResponse()
+        getCatBreeds()
     }
 
     private fun getCatImageResponse() {
@@ -65,6 +67,30 @@ class MainActivity : AppCompatActivity() {
                     Log.e(MAIN_ACTIVITY, "Failed to get response\n" +
                             response.errorBody()?.string().orEmpty()
                     )
+                }
+            }
+        })
+    }
+
+    private fun getCatBreeds() {
+        val call = catApiService.getBreeds()
+        call.enqueue(object : Callback<List<CatBreedData>> {
+            override fun onFailure(call: Call<List<CatBreedData>>, t: Throwable) {
+                Log.e(MAIN_ACTIVITY, "Failed to get breeds", t)
+            }
+
+            override fun onResponse(call: Call<List<CatBreedData>>, response: Response<List<CatBreedData>>) {
+                if (response.isSuccessful) {
+                    val breeds = response.body().orEmpty()
+                    if (breeds.isNotEmpty()) {
+                        val firstBreed = breeds.first()
+                        Log.d(MAIN_ACTIVITY, "First breed: ${firstBreed.name}, from ${firstBreed.origin}")
+                        apiResponseView.text = "${firstBreed.name} (${firstBreed.origin})"
+                    } else {
+                        Log.d(MAIN_ACTIVITY, "No breeds found")
+                    }
+                } else {
+                    Log.e(MAIN_ACTIVITY, "Error: ${response.errorBody()?.string()}")
                 }
             }
         })
